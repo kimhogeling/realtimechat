@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+    body {
+        background: #eee;
+        font-size: 20px;
+    }
+    #chatContainer {
+        position: absolute;
+        width: 90%;
+        height: 100%;
+        margin: 0 5%;
+    }
+    h1 {
+        text-align: center;
+        margin: 0.2em;
+        font-size: 100%;
+        line-height: 100%;
+    }
+    #field {
+        height: 60%;
+        padding: 0 10%;
+        overflow: auto;
+    }
+    .message {
+        box-shadow: 1px 1px 5px #999;
+        padding: 1em;
+        margin: 1em 0;
+        background: #fff;
+    }
+    #new, #submit {
+        width: 100%;
+        padding: 1em;
+        margin: 1em 0;
+        display: block;
+        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+        box-sizing: border-box;         /* Opera/IE 8+ */
+    }
+    #new {
+        box-shadow: 1px 1px 5px #999 inset;
+    }
+    #submit {
+        background: #4387fd;
+        color: #fff;
+        box-shadow: 1px 1px 5px #999;
+        cursor: pointer;
+    }
+    </style>
+</head>
+<body>
+<div id="chatContainer">
+    <h1>Chat</h1>
+    <div id="field"></div>
+    <input id="new" />
+    <input id="submit" type="submit" value="Senden" onclick="sendMessage()" />
+</div>
+<script src="js/socketio.js"></script>
+<script>
+function insertMessage(message) {
+    var el = document.createElement('p');
+    el.innerText = message;
+    el.className = 'message';
+    document.getElementById('field').appendChild(el);
+}
+function sendMessage() {
+    socket.emit('messages', document.getElementById('new').value);
+    document.getElementById('new').value = '';
+}
+
+
+var socket = io.connect('http://localhost:8080');
+socket.on('connect', function(data) {
+    user = prompt ? prompt('Hallo, wer bist du?') : false;
+    socket.emit('join', user);
+});
+socket.on('messages', function(data) {
+    insertMessage(data);
+});
+
+</script>
+</body>
+</html>
