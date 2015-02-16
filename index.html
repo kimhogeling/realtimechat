@@ -1,90 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+    <title>Plauderpiraten</title>
     <style>
     * {
         margin: 0;
         padding: 0;
         border: 0;
-    }
-    body {
-        background: #eee;
         font-size: 20px;
+        outline: 0;
+        border: 0;
     }
-    #chatContainer {
-        position: absolute;
-        width: 90%;
-        height: 100%;
-        margin: 0 5%;
+    html, body {
+        background: #fff url('stuff/pirates.jpg');
+        font-family: sans-serif;
+        padding: 20px 0 60px;
     }
     h1 {
+        position: fixed;
+        top: 0;
+        width: 100%;
         text-align: center;
-        margin: 0.2em;
-        font-size: 100%;
-        line-height: 100%;
-    }
-    #field {
-        height: 60%;
-        padding: 0 10%;
-        overflow: auto;
+        line-height: 2em;
+        background: #586;
+        color: #fff;
+        box-shadow: 1px 1px 1px #000;
     }
     .message {
-        box-shadow: 1px 1px 5px #999;
-        padding: 1em;
-        margin: 1em 0;
+        padding: 10px;
+        margin: 10px;
         background: #fff;
+        overflow: auto;
+        outline: 1px solid #586;
+    }
+    #form {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background: #586;
+        height: 60px;
+
     }
     #new, #submit {
-        width: 100%;
-        padding: 1em;
-        margin: 1em 0;
+        position: absolute;
+        padding: 10px;
+        top: 10px;
+        height: 40px;
         display: block;
         -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
         -moz-box-sizing: border-box;    /* Firefox, other Gecko */
         box-sizing: border-box;         /* Opera/IE 8+ */
     }
     #new {
-        box-shadow: 1px 1px 5px #999 inset;
+        left: 3%;
+        width: 72%;
+        box-shadow: 1px 1px 1px #000 inset;
     }
     #submit {
-        background: #4387fd;
+        width: 22%;
+        right: 3%;
+        background: #BF360C;
         color: #fff;
-        box-shadow: 1px 1px 5px #999;
         cursor: pointer;
+        box-shadow: 1px 1px 1px #000;
     }
     </style>
 </head>
 <body>
-<div id="chatContainer">
-    <h1>Chat</h1>
-    <div id="field"></div>
-    <input id="new" />
-    <input id="submit" type="submit" value="Senden" onclick="sendMessage()" />
-</div>
-<script src="js/socketio.js"></script>
+    <h1>Plauderpiraten</h1>
+    <div id="wrapper"></div>
+    <form id="form">
+        <input id="new" placeholder="Yohoho! Schreib hier!" />
+        <input id="submit" type="submit" value="Arrr!" />
+    </form>
+<script src="stuff/socketio.js"></script>
 <script>
-function insertMessage(message) {
-    var el = document.createElement('p');
-    el.innerText = message;
-    el.className = 'message';
-    document.getElementById('field').appendChild(el);
-}
-function sendMessage() {
-    socket.emit('messages', document.getElementById('new').value);
-    document.getElementById('new').value = '';
-}
+window.chat = (function(doc, sock){
+    var _inputField, _messagesWrapper;
 
+    function askName() {
+        sock.emit('join', prompt('Arrr! Wer bist du?'));
+        cleanUp();
+    }
+    function cleanUp() {
+        while(_messagesWrapper.firstChild) {
+            _messagesWrapper.removeChild(_messagesWrapper.firstChild);
+        }
+    }
+    function insertMessage(message) {
+        var el = doc.createElement('p');
+        el.className = 'message';
+        el.innerText = message;
+        doc.getElementById('wrapper').appendChild(el);
+        delete el;
+        window.scrollTo(0, doc.body.scrollHeight);
+    }
+    function sendMessage(e) {
+        e.preventDefault();
+        sock.emit('messages', _inputField.value);
+        _inputField.value = '';
+    }
+    function disconnected() {
+        cleanUp();
+        insertMessage('Lost connection to server :(');
+    }
+    function init () {
+        _inputField = doc.getElementById('new');
+        _messagesWrapper = doc.getElementById('wrapper');
+        sock.on('connect', askName);
+        sock.on('disconnect', disconnected);
+        sock.on('messages', insertMessage);
+        doc.getElementById('form').addEventListener("submit", sendMessage);
+        _inputField.focus();
+    }
+    return {
+        init: init
+    };
+}(
+    window.document,
+    io.connect(window.location && window.location.origin || window.document.location.origin)
+));
 
-var socket = io.connect('http://localhost:8080');
-socket.on('connect', function(data) {
-    user = prompt ? prompt('Hallo, wer bist du?') : false;
-    socket.emit('join', user);
+window.addEventListener('load', function (e) {
+    window.chat.init();
 });
-socket.on('messages', function(data) {
-    insertMessage(data);
-});
-
 </script>
 </body>
 </html>
