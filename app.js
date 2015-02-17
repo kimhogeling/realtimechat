@@ -11,30 +11,52 @@ function storeMessage(nickname, text) {
     });
 }
 
+var _userlist = {};
+
 io.sockets.on('connection', function (client) {
-    console.log('new connection!');
-    client.on('join', function (name) {
+    client.on('join', function (nickname) {
         redisClient.lrange('messages', 0, -1, function(err, storedMessages){
             storedMessages = storedMessages.reverse();
             storedMessages.forEach(function (storedMessage) {
-                console.log(storedMessage);
                 storedMessage = JSON.parse(storedMessage);
-                client.emit("messages", storedMessage.nickname + ': "' + storedMessage.text + '"');
+                client.emit("messages", {
+                    nickname: storedMessage.nickname,
+                    text: storedMessage.text
+                });
             });
         });
-        client.emit('messages', 'Server: "Hallo ' + name + '"');
-        client.nickname = name;
-        client.broadcast.emit('messages', 'Neuer Nutzer: "' + name + '"');
-        console.log('joined: ' + name);
+        client.emit('messages', {
+            nickname: 'Captain Server',
+            text: 'Arrr ' + nickname + ', our new pirate!'
+        });
+        _userlist[client.id] = nickname;
+        client.nickname = nickname;
+        client.broadcast.emit('messages', {
+            nickname: 'Captain Server',
+            text: 'We got a new pirate on board! Arrr, ' + nickname + '!'
+        });
+        client.emit('users', _userlist);
+        client.broadcast.emit('users', _userlist);
+    });
+    client.on('disconnect', function(data){
+        delete _userlist[client.id];
+        client.emit('users', _userlist);
+        client.broadcast.emit('users', _userlist);
     });
     client.on('messages', function (message) {
-        client.emit('messages', 'Ich: "' + message + '"');
-        client.broadcast.emit('messages', client.nickname + ': "' + message + '"');
-        storeMessage(client.nickname, message);
+        client.emit('messages', {
+            nickname: 'me',
+            text: message.text
+        });
+        client.broadcast.emit('messages', {
+            nickname: client.nickname,
+            text: message.text
+        });
+        storeMessage(client.nickname, message.text);
     });
 });
 
-app.use("/stuff", express.static(__dirname + '/stuff'));
+app.use("/public", express.static(__dirname + '/public'));
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html', {});
 });

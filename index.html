@@ -1,117 +1,165 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
-    <title>Plauderpiraten</title>
-    <style>
-    * {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-size: 20px;
-        outline: 0;
-        border: 0;
-    }
-    html, body {
-        background: #fff url('stuff/pirates.jpg');
-        font-family: sans-serif;
-        padding: 20px 0 60px;
-    }
-    h1 {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        text-align: center;
-        line-height: 2em;
-        background: #586;
-        color: #fff;
-        box-shadow: 1px 1px 1px #000;
-    }
-    .message {
-        padding: 10px;
-        margin: 10px;
-        background: #fff;
-        overflow: auto;
-        outline: 1px solid #586;
-    }
-    #form {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        background: #586;
-        height: 60px;
-
-    }
-    #new, #submit {
-        position: absolute;
-        padding: 10px;
-        top: 10px;
-        height: 40px;
-        display: block;
-        -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-        -moz-box-sizing: border-box;    /* Firefox, other Gecko */
-        box-sizing: border-box;         /* Opera/IE 8+ */
-    }
-    #new {
-        left: 3%;
-        width: 72%;
-        box-shadow: 1px 1px 1px #000 inset;
-    }
-    #submit {
-        width: 22%;
-        right: 3%;
-        background: #BF360C;
-        color: #fff;
-        cursor: pointer;
-        box-shadow: 1px 1px 1px #000;
-    }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+<title>Arrrchat</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 20px;
+    outline: 0;
+    border: 0;
+}
+html, body {
+    background: #fff url('public/pirates_light.jpg');
+    font-family: sans-serif;
+    padding: 20px 0 60px;
+}
+h1 {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    line-height: 2em;
+}
+h1, #form, #contacts, .switch {
+    background: #000 url('public/wood.jpg');
+    background-size: 1500px;
+    box-shadow: 0 0 10px #420 inset, 0 0 4px #420;
+}
+h1, .switch {
+    color: #fd4;
+    text-shadow: 0 0 10px #000;
+}
+.switch {
+    position: fixed;
+    bottom: 70px;
+    left: 38%;
+    box-shadow: 1px 1px 1px #000;
+    cursor: pointer;
+    padding: 8px 0;
+    font-weight: bold;
+    border-radius: 6px;
+    width: 24%;
+    text-align: center;
+}
+.message, .pirate {
+    padding: 10px;
+    margin: 10px;
+    background: #fff;
+    overflow: auto;
+    outline: 1px solid #586;
+}
+#crewWrapper {
+  padding: 20px 0 0 0;
+  text-align: center;
+}
+#form {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+#new {
+    padding: 10px;
+    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+    -moz-box-sizing: border-box;    /* Firefox, other Gecko */
+    box-sizing: border-box;         /* Opera/IE 8+ */
+    margin: 10px 6%;
+    width: 88%;
+    box-shadow: 1px 1px 3px #000 inset;
+}
+#submit {
+    display: none;
+}
+</style>
 </head>
 <body>
-    <h1>Plauderpiraten</h1>
-    <div id="wrapper"></div>
+    <h1>Arrrchat</h1>
+    <div id="showCrew" class="switch">CREW</div>
+    <div id="showMessages" class="switch" style="display:none">ARRRS</div>
+    <div id="crewWrapper"></div>
+    <div id="messageWrapper"></div>
     <form id="form">
-        <input id="new" placeholder="Yohoho! Schreib hier!" />
-        <input id="submit" type="submit" value="Arrr!" />
+        <input id="new" placeholder="Arrr here!" />
+        <input id="submit" type="submit" />
     </form>
-<script src="stuff/socketio.js"></script>
+<script src="public/socketio.js"></script>
 <script>
 window.chat = (function(doc, sock){
-    var _inputField, _messagesWrapper;
+    var _inputField, _messagesWrapper, _crewWrapper, _showCrew, _showMessages;
 
     function askName() {
-        sock.emit('join', prompt('Arrr! Wer bist du?'));
-        cleanUp();
+        cleanUp(_messagesWrapper);
+        cleanUp(_crewWrapper);
+        sock.emit('join', 'Kim');
+        sock.emit('join', prompt('Arrr! What is your pirate name?'));
     }
-    function cleanUp() {
-        while(_messagesWrapper.firstChild) {
-            _messagesWrapper.removeChild(_messagesWrapper.firstChild);
+    function cleanUp(wrapper) {
+        while(wrapper.firstChild) {
+            wrapper.removeChild(wrapper.firstChild);
         }
     }
     function insertMessage(message) {
         var el = doc.createElement('p');
         el.className = 'message';
-        el.innerText = message;
-        doc.getElementById('wrapper').appendChild(el);
+        el.innerText = message.nickname + ': “' + message.text + '”';
+        _messagesWrapper.appendChild(el);
         delete el;
         window.scrollTo(0, doc.body.scrollHeight);
     }
     function sendMessage(e) {
         e.preventDefault();
-        sock.emit('messages', _inputField.value);
+        sock.emit('messages', {
+            text: _inputField.value
+        });
         _inputField.value = '';
     }
     function disconnected() {
-        cleanUp();
-        insertMessage('Lost connection to server :(');
+        cleanUp(_messagesWrapper);
+        cleanUp(_crewWrapper);
+        insertMessage({ nickname: 'Captain Server', text: 'The ship sunk!'});
+        insertPirate('Forever alone..');
+    }
+    function insertPirate(p) {
+        var el = doc.createElement('div');
+        el.className = 'pirate';
+        el.innerText = p;
+        _crewWrapper.appendChild(el);
+        delete el;
+    }
+    function buildCrew(crew) {
+        cleanUp(_crewWrapper);
+        for (var pirate in crew) {
+            insertPirate(crew[pirate]);
+        }
+    }
+    function showCrew() {
+        _messagesWrapper.style.display = 'none';
+        _crewWrapper.style.display = 'block';
+        _showMessages.style.display = 'block';
+        _showCrew.style.display = 'none';
+    }
+    function showMessages() {
+        _crewWrapper.style.display = 'none';
+        _messagesWrapper.style.display = 'block';
+        _showCrew.style.display = 'block';
+        _showMessages.style.display = 'none';
     }
     function init () {
         _inputField = doc.getElementById('new');
-        _messagesWrapper = doc.getElementById('wrapper');
+        _messagesWrapper = doc.getElementById('messageWrapper');
+        _crewWrapper = doc.getElementById('crewWrapper');
+        _showCrew = doc.getElementById('showCrew');
+        _showMessages = doc.getElementById('showMessages');
         sock.on('connect', askName);
         sock.on('disconnect', disconnected);
         sock.on('messages', insertMessage);
+        sock.on('users', buildCrew);
         doc.getElementById('form').addEventListener("submit", sendMessage);
+        _showCrew.addEventListener("click", showCrew);
+        _showMessages.addEventListener("click", showMessages);
         _inputField.focus();
     }
     return {
