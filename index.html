@@ -77,6 +77,14 @@ h1, .switch {
 </head>
 <body>
     <h1>Arrrchat</h1>
+    <a href="https://github.com/kimhogeling/realtimechat/issues" style="
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    padding: 5px;
+    background: #fff;
+    color: blue;
+">GitHub Issues</a>
     <div id="showCrew" class="switch">CREW</div>
     <div id="showMessages" class="switch" style="display:none">ARRRS</div>
     <div id="crewWrapper"></div>
@@ -91,10 +99,13 @@ window.chat = (function(doc, sock){
     var _inputField, _messagesWrapper, _crewWrapper, _showCrew, _showMessages;
 
     function askName() {
+        var newName = null;
         cleanUp(_messagesWrapper);
         cleanUp(_crewWrapper);
-        sock.emit('join', 'Kim');
-        sock.emit('join', prompt('Arrr! What is your pirate name?'));
+        while (!newName) {
+            newName = prompt('Arrr! What is your pirate name?');
+        }
+        sock.emit('join', newName);
     }
     function cleanUp(wrapper) {
         while(wrapper.firstChild) {
