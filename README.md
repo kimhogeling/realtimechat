@@ -65,6 +65,7 @@ sudo apt-get install redis
 
 Yuhuuu! We're done. Now, let's start the chat:
 ```sh
+redis-server &
 node app.js
 ```
 
