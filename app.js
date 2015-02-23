@@ -56,8 +56,6 @@ io.sockets.on('connection', function (client) {
     });
 });
 
-app.use("/public", express.static(__dirname + '/public'));
-app.get('/', function(req, res){
-    res.sendFile(__dirname + '/index.html', {});
-});
+app.use("/", express.static(__dirname + '/public'));
+
 server.listen(8080);
