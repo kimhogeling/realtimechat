@@ -13,12 +13,12 @@ You can install Node and NPM using another program called NVM (Node Version Mana
 Let's install NVM first:
 
 ```sh
-curl https://raw.githubusercontent.com/creationix/nvm/v0.23.3/install.sh | bash
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.29.0/install.sh | bash
 ```
 
 Now, let's install a recent Node version:
 ```sh
-nvm install v0.12.0
+nvm install v5.2.0
 ```
 
 You can now test if Node and NPM are correctly installed by running:
@@ -27,7 +27,7 @@ npm -v
 node -v
 ```
 
-If you see version numbers like `2.5.1` and `v0.12.0`, it means you're good to go!
+If you see version numbers like `3.5.1` and `v5.2.0`, it means you're good to go!
 
 Awesome! Just a few more steps.
 
