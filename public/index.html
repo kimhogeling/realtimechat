@@ -115,7 +115,7 @@ window.chat = (function(doc, sock){
     function insertMessage(message) {
         var el = doc.createElement('p');
         el.className = 'message';
-        el.innerText = message.nickname + ': “' + message.text + '”';
+        el.textContent = message.nickname + ': “' + message.text + '”';
         _messagesWrapper.appendChild(el);
         delete el;
         window.scrollTo(0, doc.body.scrollHeight);
@@ -136,7 +136,7 @@ window.chat = (function(doc, sock){
     function insertPirate(p) {
         var el = doc.createElement('div');
         el.className = 'pirate';
-        el.innerText = p;
+        el.textContent = p;
         _crewWrapper.appendChild(el);
         delete el;
     }
